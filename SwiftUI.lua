@@ -1261,8 +1261,6 @@ end
 
 task.delay(0.3, function()
     SwiftBara:Notify("SwiftBara loaded! Press RightShift to toggle", 4)
-    SwiftBara:Notify("Click [None] button on modules to set keybinds", 5)
-    SwiftBara:Notify("Press Delete key to remove keybind (set to None)", 5)
 end)
 
 print("[SwiftBara] Client v" .. SwiftBara.Version .. " loaded!")
