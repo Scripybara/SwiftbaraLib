@@ -15,7 +15,7 @@ local SwiftBara = {
     Categories = {},
     EnabledModules = {},
     Keybinds = {},
-    ToggleKey = Enum.KeyCode.RightShift,
+    ToggleKey = Enum.KeyCode.Insert,  -- Đổi từ RightShift thành Insert
     GUIVisible = true
 }
 
@@ -983,35 +983,39 @@ end
 
 --[[
     ═══════════════════════════════════════════════════════════════
-                         KEYBIND HANDLER - FIXED
+                         KEYBIND HANDLER
     ═══════════════════════════════════════════════════════════════
 ]]
-
--- Tạo một biến riêng để lưu trạng thái GUI
-local GUIEnabled = true
 
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     
-    -- Debug thông tin input
-    print("[DEBUG] Key pressed:", input.KeyCode.Name, "ToggleKey:", SwiftBara.ToggleKey.Name)
+    -- Debug: xem phím nào được nhấn
+    -- print("[DEBUG] Key pressed:", input.KeyCode.Name)
     
     if input.KeyCode == SwiftBara.ToggleKey then
-        GUIEnabled = not GUIEnabled
-        print("[DEBUG] Toggling GUI. New state:", GUIEnabled)
+        SwiftBara.GUIVisible = not SwiftBara.GUIVisible
         
-        -- Chỉ tắt/bật Main GUI (UI chính)
+        -- Chỉ tắt/bật Main GUI (UI chính), Array GUI vẫn hiển thị
         if MainGui then
-            MainGui.Enabled = GUIEnabled
-            print("[DEBUG] MainGui.Enabled set to:", MainGui.Enabled)
+            MainGui.Enabled = SwiftBara.GUIVisible
+        end
+        
+        -- Hiển thị thông báo khi bật/tắt
+        if SwiftBara.GUIVisible then
+            task.spawn(function()
+                SwiftBara:Notify("UI Enabled", 1)
+            end)
         else
-            print("[ERROR] MainGui is nil!")
+            task.spawn(function()
+                SwiftBara:Notify("UI Disabled", 1)
+            end)
         end
     end
     
     local mod = SwiftBara.Keybinds[input.KeyCode]
     if mod and mod.Toggle then mod:Toggle() end
-end)
+end))
 
 --[[
     ═══════════════════════════════════════════════════════════════
