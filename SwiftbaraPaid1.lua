@@ -785,14 +785,14 @@ function SwiftBara:CreateCategory(config)
             local handle = Create("Frame", {
                 Name = "Handle",
                 Parent = sliderBg,
-                BackgroundColor3 = Theme.Text,
+                BackgroundColor3 = Color3.new(1, 1, 1),
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new((default - min) / (max - min), 0, 0.5, 0),
-                Size = UDim2.new(0, 10, 0, 10),
+                Size = UDim2.new(0, 12, 0, 12),
                 ZIndex = 2
             })
             Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = handle})
-            local handleStroke = Create("UIStroke", {Parent = handle, Thickness = 1.5})
+            local handleStroke = Create("UIStroke", {Parent = handle, Thickness = 2})
             Create("UIGradient", {
                 Parent = handleStroke,
                 Color = ColorSequence.new({
@@ -873,7 +873,7 @@ function SwiftBara:CreateCategory(config)
             local toggleBg = Create("Frame", {
                 Name = "Bg",
                 Parent = toggleFrame,
-                BackgroundColor3 = Color3.fromRGB(40, 40, 55),
+                BackgroundColor3 = Color3.fromRGB(50, 50, 65),
                 AnchorPoint = Vector2.new(1, 0.5),
                 Position = UDim2.new(1, 0, 0.5, 0),
                 Size = UDim2.new(0, 30, 0, 14)
@@ -883,15 +883,15 @@ function SwiftBara:CreateCategory(config)
             local toggleGradient = Create("UIGradient", {
                 Parent = toggleBg,
                 Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 55)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 55))
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 65)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 65))
                 })
             })
             
             local toggleCircle = Create("Frame", {
                 Name = "Circle",
                 Parent = toggleBg,
-                BackgroundColor3 = Theme.TextDim,
+                BackgroundColor3 = Color3.fromRGB(180, 180, 190),
                 AnchorPoint = Vector2.new(0, 0.5),
                 Position = UDim2.new(0, 2, 0.5, 0),
                 Size = UDim2.new(0, 10, 0, 10)
@@ -902,16 +902,16 @@ function SwiftBara:CreateCategory(config)
                 Toggle.Value = val
                 if val then
                     toggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Theme.Primary),
-                        ColorSequenceKeypoint.new(1, Theme.Secondary)
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 120, 70)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 220, 255))
                     })
-                    Tween(toggleCircle, {Position = UDim2.new(1, -12, 0.5, 0), BackgroundColor3 = Theme.Text}, 0.15)
+                    Tween(toggleCircle, {Position = UDim2.new(1, -12, 0.5, 0), BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.15)
                 else
                     toggleGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 55)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 55))
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 65)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 65))
                     })
-                    Tween(toggleCircle, {Position = UDim2.new(0, 2, 0.5, 0), BackgroundColor3 = Theme.TextDim}, 0.15)
+                    Tween(toggleCircle, {Position = UDim2.new(0, 2, 0.5, 0), BackgroundColor3 = Color3.fromRGB(180, 180, 190)}, 0.15)
                 end
                 callback(val)
             end
@@ -1025,15 +1025,15 @@ function SwiftBara:CreateCategory(config)
                 Name = pickerName,
                 Parent = settingsContainer,
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 20),
-                ClipsDescendants = true
+                Size = UDim2.new(1, 0, 0, 22),
+                ClipsDescendants = false
             })
             
             Create("TextLabel", {
                 Name = "Label",
                 Parent = pickerFrame,
                 BackgroundTransparency = 1,
-                Size = UDim2.new(0.6, 0, 0, 20),
+                Size = UDim2.new(0.55, 0, 0, 22),
                 Font = Enum.Font.Gotham,
                 Text = pickerName,
                 TextColor3 = Theme.TextDim,
@@ -1048,7 +1048,7 @@ function SwiftBara:CreateCategory(config)
                 BackgroundColor3 = default,
                 AnchorPoint = Vector2.new(1, 0.5),
                 Position = UDim2.new(1, 0, 0.5, 0),
-                Size = UDim2.new(0, 60, 0, 16),
+                Size = UDim2.new(0, 65, 0, 18),
                 Text = "",
                 AutoButtonColor = false
             })
@@ -1057,7 +1057,7 @@ function SwiftBara:CreateCategory(config)
                 Parent = colorBtn,
                 Color = Color3.fromRGB(255, 255, 255),
                 Thickness = 1,
-                Transparency = 0.7
+                Transparency = 0.6
             })
             
             -- RGB text
@@ -1067,7 +1067,7 @@ function SwiftBara:CreateCategory(config)
                 BackgroundTransparency = 1,
                 Size = UDim2.new(1, 0, 1, 0),
                 Font = Enum.Font.Code,
-                Text = string.format("%d, %d, %d", default.R * 255, default.G * 255, default.B * 255),
+                Text = string.format("%d, %d, %d", math.floor(default.R * 255), math.floor(default.G * 255), math.floor(default.B * 255)),
                 TextColor3 = Color3.new(1, 1, 1),
                 TextSize = 8,
                 TextStrokeTransparency = 0.5
@@ -1078,16 +1078,17 @@ function SwiftBara:CreateCategory(config)
                 Name = "Panel",
                 Parent = pickerFrame,
                 BackgroundColor3 = Color3.fromRGB(22, 22, 30),
-                Position = UDim2.new(0, 0, 0, 22),
-                Size = UDim2.new(1, 0, 0, 0),
-                Visible = false
+                Position = UDim2.new(0, 0, 0, 24),
+                Size = UDim2.new(1, 0, 0, 120),
+                Visible = false,
+                ZIndex = 10
             })
             Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = pickerPanel})
             Create("UIStroke", {
                 Parent = pickerPanel,
                 Color = Theme.Primary,
-                Thickness = 1,
-                Transparency = 0.6
+                Thickness = 1.5,
+                Transparency = 0.5
             })
             
             local panelPadding = Create("UIPadding", {
@@ -1098,57 +1099,13 @@ function SwiftBara:CreateCategory(config)
                 PaddingRight = UDim.new(0, 8)
             })
             
-            -- Hue bar (vertical)
-            local hueFrame = Create("Frame", {
-                Name = "HueFrame",
-                Parent = pickerPanel,
-                BackgroundTransparency = 1,
-                AnchorPoint = Vector2.new(1, 0),
-                Position = UDim2.new(1, 0, 0, 0),
-                Size = UDim2.new(0, 12, 1, 0)
-            })
-            
-            local hueBar = Create("Frame", {
-                Name = "HueBar",
-                Parent = hueFrame,
-                BackgroundColor3 = Color3.new(1, 1, 1),
-                Size = UDim2.new(1, 0, 1, 0)
-            })
-            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = hueBar})
-            
-            local hueGradient = Create("UIGradient", {
-                Parent = hueBar,
-                Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-                    ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
-                    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
-                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
-                    ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
-                    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-                }),
-                Rotation = 90
-            })
-            
-            local hueSelector = Create("Frame", {
-                Name = "Selector",
-                Parent = hueBar,
-                BackgroundColor3 = Color3.new(1, 1, 1),
-                AnchorPoint = Vector2.new(0.5, 0.5),
-                Position = UDim2.new(0.5, 0, 0, 0),
-                Size = UDim2.new(1, 4, 0, 3),
-                BorderSizePixel = 0
-            })
-            Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = hueSelector})
-            Create("UIStroke", {Parent = hueSelector, Color = Color3.new(0, 0, 0), Thickness = 1})
-            
-            -- Saturation/Value picker
+            -- Saturation/Value picker (BIGGER)
             local svFrame = Create("Frame", {
                 Name = "SVFrame",
                 Parent = pickerPanel,
                 BackgroundColor3 = Color3.fromRGB(255, 0, 0),
                 Position = UDim2.new(0, 0, 0, 0),
-                Size = UDim2.new(1, -18, 1, 0)
+                Size = UDim2.new(1, -20, 1, 0)
             })
             Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = svFrame})
             
@@ -1193,10 +1150,56 @@ function SwiftBara:CreateCategory(config)
                 BackgroundColor3 = Color3.new(1, 1, 1),
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(1, 0, 0, 0),
-                Size = UDim2.new(0, 8, 0, 8)
+                Size = UDim2.new(0, 10, 0, 10),
+                ZIndex = 11
             })
             Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = svSelector})
             Create("UIStroke", {Parent = svSelector, Color = Color3.new(0, 0, 0), Thickness = 2})
+            
+            -- Hue bar (vertical) - RIGHT SIDE
+            local hueFrame = Create("Frame", {
+                Name = "HueFrame",
+                Parent = pickerPanel,
+                BackgroundTransparency = 1,
+                AnchorPoint = Vector2.new(1, 0),
+                Position = UDim2.new(1, 0, 0, 0),
+                Size = UDim2.new(0, 14, 1, 0)
+            })
+            
+            local hueBar = Create("Frame", {
+                Name = "HueBar",
+                Parent = hueFrame,
+                BackgroundColor3 = Color3.new(1, 1, 1),
+                Size = UDim2.new(1, 0, 1, 0)
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = hueBar})
+            
+            local hueGradient = Create("UIGradient", {
+                Parent = hueBar,
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+                    ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
+                    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+                    ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
+                    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+                }),
+                Rotation = 90
+            })
+            
+            local hueSelector = Create("Frame", {
+                Name = "Selector",
+                Parent = hueBar,
+                BackgroundColor3 = Color3.new(1, 1, 1),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.new(0.5, 0, 0, 0),
+                Size = UDim2.new(1, 4, 0, 4),
+                BorderSizePixel = 0,
+                ZIndex = 11
+            })
+            Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = hueSelector})
+            Create("UIStroke", {Parent = hueSelector, Color = Color3.new(0, 0, 0), Thickness = 1.5})
             
             -- HSV to RGB conversion
             local function hsvToRgb(h, s, v)
@@ -1321,9 +1324,9 @@ function SwiftBara:CreateCategory(config)
                 ColorPicker.Opened = not ColorPicker.Opened
                 if ColorPicker.Opened then
                     pickerPanel.Visible = true
-                    Tween(pickerFrame, {Size = UDim2.new(1, 0, 0, 110)}, 0.2)
+                    Tween(pickerFrame, {Size = UDim2.new(1, 0, 0, 148)}, 0.2)
                 else
-                    Tween(pickerFrame, {Size = UDim2.new(1, 0, 0, 20)}, 0.2)
+                    Tween(pickerFrame, {Size = UDim2.new(1, 0, 0, 22)}, 0.2)
                     task.delay(0.2, function()
                         if not ColorPicker.Opened then
                             pickerPanel.Visible = false
