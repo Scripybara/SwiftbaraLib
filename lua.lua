@@ -1,5 +1,4 @@
-[file name]: Swift UI.lua
-[file content begin]
+
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
     ║                 SwiftBara Client UI                            ║
@@ -2396,4 +2395,4 @@ end)
 print("[SwiftBara] Client v" .. SwiftBara.Version .. " loaded!")
 
 return SwiftBara
-[file content end]
+
