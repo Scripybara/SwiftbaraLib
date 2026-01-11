@@ -993,9 +993,9 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     if input.KeyCode == SwiftBara.ToggleKey then
         SwiftBara.GUIVisible = not SwiftBara.GUIVisible
         
-        -- Chỉ tắt/bật Main GUI (UI chính), Array GUI vẫn hiển thị
+        -- Chỉ tắt/bật Main GUI (UI chính)
         MainGui.Enabled = SwiftBara.GUIVisible
-        -- ArrayGui.Enabled = true  -- Luôn bật (hoặc không cần dòng này)
+        -- Array GUI vẫn hiển thị bình thường
     end
     
     local mod = SwiftBara.Keybinds[input.KeyCode]
