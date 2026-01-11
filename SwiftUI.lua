@@ -16,7 +16,10 @@ local SwiftBara = {
     EnabledModules = {},
     Keybinds = {},
     ToggleKey = Enum.KeyCode.RightShift,
-    GUIVisible = true
+    GUIVisible = true,
+    SelectingKeybind = false,  -- Trạng thái đang chọn keybind
+    SelectedModule = nil,      -- Module đang được chọn để gán keybind
+    KeybindSelectionMode = "SINGLE" -- "SINGLE" hoặc "ALL"
 }
 
 -- Services
@@ -45,6 +48,7 @@ local Theme = {
     
     Text = Color3.fromRGB(255, 255, 255),
     TextDim = Color3.fromRGB(130, 130, 145),
+    Selecting = Color3.fromRGB(255, 200, 50), -- Màu khi đang chọn keybind
 }
 
 -- Utilities
@@ -578,19 +582,20 @@ function SwiftBara:CreateCategory(config)
             TextXAlignment = Enum.TextXAlignment.Left
         })
         
-        -- Key label
-        local keyLabel = Create("TextLabel", {
-            Name = "Key",
+        -- Keybind Selector Button
+        local keySelectBtn = Create("TextButton", {
+            Name = "KeySelectBtn",
             Parent = modBtn,
             BackgroundTransparency = 1,
             AnchorPoint = Vector2.new(1, 0.5),
             Position = UDim2.new(1, -6, 0.5, 0),
             Size = UDim2.new(0, 35, 0, 14),
             Font = Enum.Font.Code,
-            Text = modKey and ("[" .. modKey.Name .. "]") or "",
+            Text = modKey and ("[" .. modKey.Name .. "]") or "[R]",
             TextColor3 = Theme.TextDim,
             TextSize = 9,
-            TextXAlignment = Enum.TextXAlignment.Right
+            TextXAlignment = Enum.TextXAlignment.Right,
+            AutoButtonColor = false
         })
         
         -- Settings container
@@ -659,6 +664,57 @@ function SwiftBara:CreateCategory(config)
             if #Module.Settings > 0 then
                 Module.Expanded = not Module.Expanded
                 UpdateModuleSize()
+            end
+        end)
+        
+        -- Khi nhấn vào nút keybind
+        keySelectBtn.MouseButton1Click:Connect(function()
+            if SwiftBara.SelectingKeybind then
+                -- Đã đang chọn keybind, hủy
+                SwiftBara.SelectingKeybind = false
+                SwiftBara.SelectedModule = nil
+                SwiftBara.KeybindSelectionMode = "SINGLE"
+                SwiftBara:Notify("Cancelled keybind selection")
+                
+                -- Reset màu tất cả nút keybind
+                for _, cat in pairs(SwiftBara.Categories) do
+                    for _, mod in pairs(cat.Modules) do
+                        local frame = modulesContainer:FindFirstChild(mod.Name)
+                        if frame then
+                            local btn = frame:FindFirstChild("Button")
+                            if btn then
+                                local keyBtn = btn:FindFirstChild("KeySelectBtn")
+                                if keyBtn then
+                                    keyBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[R]"
+                                    Tween(keyBtn, {TextColor3 = Theme.TextDim}, 0.2)
+                                end
+                            end
+                        end
+                    end
+                end
+            else
+                -- Bắt đầu chọn keybind cho module này
+                SwiftBara.SelectingKeybind = true
+                SwiftBara.SelectedModule = Module
+                SwiftBara.KeybindSelectionMode = "SINGLE"
+                SwiftBara:Notify("Press any key to bind to " .. modName .. " (ESC to cancel)")
+                
+                -- Highlight nút keybind của module này
+                keySelectBtn.Text = "[...]"
+                Tween(keySelectBtn, {TextColor3 = Theme.Selecting}, 0.2)
+            end
+        end)
+        
+        -- Hover effect cho nút keybind
+        keySelectBtn.MouseEnter:Connect(function()
+            if not SwiftBara.SelectingKeybind then
+                Tween(keySelectBtn, {TextColor3 = Theme.Text}, 0.1)
+            end
+        end)
+        
+        keySelectBtn.MouseLeave:Connect(function()
+            if not SwiftBara.SelectingKeybind and keySelectBtn.TextColor3 ~= Theme.Selecting then
+                Tween(keySelectBtn, {TextColor3 = Theme.TextDim}, 0.1)
             end
         end)
         
@@ -971,7 +1027,7 @@ function SwiftBara:CreateCategory(config)
         function Module:SetKey(key)
             if Module.Key then SwiftBara.Keybinds[Module.Key] = nil end
             Module.Key = key
-            keyLabel.Text = key and ("[" .. key.Name .. "]") or ""
+            keySelectBtn.Text = key and ("[" .. key.Name .. "]") or "[R]"
             if key then SwiftBara.Keybinds[key] = Module end
         end
         
@@ -1005,13 +1061,115 @@ end
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     
+    -- Toggle GUI
     if input.KeyCode == SwiftBara.ToggleKey then
         SwiftBara.GUIVisible = not SwiftBara.GUIVisible
         MainGui.Enabled = SwiftBara.GUIVisible
     end
     
+    -- Hotkey Ctrl+R để bắt đầu chọn keybind cho tất cả module
+    if input.KeyCode == Enum.KeyCode.R then
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl) then
+            if not SwiftBara.SelectingKeybind then
+                SwiftBara.SelectingKeybind = true
+                SwiftBara.KeybindSelectionMode = "ALL"
+                SwiftBara:Notify("Select a module's keybind button, then press any key (ESC to cancel)")
+                return
+            end
+        end
+    end
+    
+    -- Nếu đang ở chế độ chọn keybind
+    if SwiftBara.SelectingKeybind then
+        if input.KeyCode == Enum.KeyCode.Escape then
+            -- Hủy chọn keybind
+            SwiftBara.SelectingKeybind = false
+            SwiftBara.SelectedModule = nil
+            SwiftBara.KeybindSelectionMode = "SINGLE"
+            SwiftBara:Notify("Cancelled keybind selection")
+            
+            -- Reset tất cả nút keybind
+            for _, cat in pairs(SwiftBara.Categories) do
+                for _, mod in pairs(cat.Modules) do
+                    -- Tìm và reset nút keybind
+                    for _, cat2 in pairs(SwiftBara.Categories) do
+                        for _, modFrame in pairs(cat2.Modules) do
+                            if modFrame.Name == mod.Name then
+                                -- Tìm trong modulesContainer
+                                local frame = cat2.modulesContainer:FindFirstChild(mod.Name)
+                                if frame then
+                                    local btn = frame:FindFirstChild("Button")
+                                    if btn then
+                                        local keyBtn = btn:FindFirstChild("KeySelectBtn")
+                                        if keyBtn then
+                                            keyBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[R]"
+                                            Tween(keyBtn, {TextColor3 = Theme.TextDim}, 0.2)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        elseif SwiftBara.SelectedModule then
+            -- Gán keybind mới cho module đã chọn
+            local module = SwiftBara.SelectedModule
+            if module then
+                module:SetKey(input.KeyCode)
+                SwiftBara:Notify("Bound " .. module.Name .. " to [" .. input.KeyCode.Name .. "]")
+            end
+            
+            -- Tắt chế độ chọn keybind
+            SwiftBara.SelectingKeybind = false
+            SwiftBara.SelectedModule = nil
+            SwiftBara.KeybindSelectionMode = "SINGLE"
+        end
+        return
+    end
+    
+    -- Kích hoạt module bằng keybind
     local mod = SwiftBara.Keybinds[input.KeyCode]
-    if mod and mod.Toggle then mod:Toggle() end
+    if mod and mod.Toggle then 
+        mod:Toggle() 
+    end
+end)
+
+-- Hiệu ứng nhấp nháy khi đang chọn keybind
+task.spawn(function()
+    while task.wait(0.5) do
+        if SwiftBara.SelectingKeybind then
+            for _, cat in pairs(SwiftBara.Categories) do
+                for _, mod in pairs(cat.Modules) do
+                    local modulesContainer = cat.modulesContainer
+                    if modulesContainer then
+                        local frame = modulesContainer:FindFirstChild(mod.Name)
+                        if frame then
+                            local btn = frame:FindFirstChild("Button")
+                            if btn then
+                                local keyBtn = btn:FindFirstChild("KeySelectBtn")
+                                if keyBtn then
+                                    if mod == SwiftBara.SelectedModule then
+                                        keyBtn.Text = "[...]"
+                                        Tween(keyBtn, {TextColor3 = Theme.Selecting}, 0.2)
+                                    elseif SwiftBara.KeybindSelectionMode == "ALL" then
+                                        -- Nhấp nháy cho tất cả khi ở chế độ ALL
+                                        if keyBtn.Text == "[...]" then
+                                            keyBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[R]"
+                                            Tween(keyBtn, {TextColor3 = Theme.TextDim}, 0.2)
+                                        else
+                                            keyBtn.Text = "[...]"
+                                            Tween(keyBtn, {TextColor3 = Theme.Selecting}, 0.2)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
 end)
 
 --[[
@@ -1072,6 +1230,7 @@ end
 
 task.delay(0.3, function()
     SwiftBara:Notify("SwiftBara loaded! Press RightShift to toggle", 4)
+    SwiftBara:Notify("Click [R] button on modules to set keybinds", 4)
 end)
 
 print("[SwiftBara] Client v" .. SwiftBara.Version .. " loaded!")
