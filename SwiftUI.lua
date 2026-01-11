@@ -359,7 +359,8 @@ function SwiftBara:CreateCategory(config)
     local Category = {
         Name = name,
         Modules = {},
-        Expanded = true
+        Expanded = true,
+        modulesContainer = nil -- Thêm container để truy cập từ bên ngoài
     }
     
     -- Main frame
@@ -482,6 +483,9 @@ function SwiftBara:CreateCategory(config)
         PaddingRight = UDim.new(0, 4)
     })
     
+    -- Lưu container vào Category
+    Category.modulesContainer = modulesContainer
+    
     -- Update size
     local function UpdateSize()
         local layout = modulesContainer:FindFirstChildOfClass("UIListLayout")
@@ -524,15 +528,16 @@ function SwiftBara:CreateCategory(config)
         config = config or {}
         local modName = config.Name or "Module"
         local modDefault = config.Default or false
-        local modKey = config.Key or nil
+        local modKey = config.Key -- Có thể là nil, Enum.KeyCode, hoặc chuỗi "None"
         local modCallback = config.Callback or function() end
         
         local Module = {
             Name = modName,
             Enabled = false,
-            Key = modKey,
+            Key = nil, -- Mặc định là nil (None)
             Settings = {},
-            Expanded = false
+            Expanded = false,
+            keySelectBtn = nil -- Thêm reference để truy cập từ bên ngoài
         }
         
         -- Module frame
@@ -583,7 +588,7 @@ function SwiftBara:CreateCategory(config)
             TextXAlignment = Enum.TextXAlignment.Left
         })
         
-        -- Keybind Selector Button (mặc định là None)
+        -- Keybind Selector Button
         local keySelectBtn = Create("TextButton", {
             Name = "KeySelectBtn",
             Parent = modBtn,
@@ -598,6 +603,9 @@ function SwiftBara:CreateCategory(config)
             TextXAlignment = Enum.TextXAlignment.Right,
             AutoButtonColor = false
         })
+        
+        -- Lưu reference vào Module
+        Module.keySelectBtn = keySelectBtn
         
         -- Settings container
         local settingsContainer = Create("Frame", {
@@ -619,6 +627,36 @@ function SwiftBara:CreateCategory(config)
             PaddingLeft = UDim.new(0, 8),
             PaddingRight = UDim.new(0, 8)
         })
+        
+        -- Helper function to check if value is "None"
+        local function isNoneValue(value)
+            if value == nil then return true end
+            if type(value) == "string" then
+                return value:lower() == "none"
+            end
+            return false
+        end
+        
+        -- Helper function to initialize keybind
+        local function initializeKeybind()
+            if modKey and not isNoneValue(modKey) then
+                -- Nếu modKey là Enum.KeyCode
+                if typeof(modKey) == "EnumItem" and modKey.EnumType == Enum.KeyCode then
+                    Module.Key = modKey
+                    keySelectBtn.Text = "[" .. modKey.Name .. "]"
+                    Tween(keySelectBtn, {TextColor3 = Theme.TextDim}, 0.2)
+                    SwiftBara.Keybinds[modKey] = Module
+                end
+            else
+                -- Mặc định là None
+                Module.Key = nil
+                keySelectBtn.Text = "[None]"
+                Tween(keySelectBtn, {TextColor3 = Theme.None}, 0.2)
+            end
+        end
+        
+        -- Khởi tạo keybind
+        initializeKeybind()
         
         -- Update state
         local function UpdateState()
@@ -680,16 +718,9 @@ function SwiftBara:CreateCategory(config)
                 -- Reset màu tất cả nút keybind
                 for _, cat in pairs(SwiftBara.Categories) do
                     for _, mod in pairs(cat.Modules) do
-                        local frame = modulesContainer:FindFirstChild(mod.Name)
-                        if frame then
-                            local btn = frame:FindFirstChild("Button")
-                            if btn then
-                                local keyBtn = btn:FindFirstChild("KeySelectBtn")
-                                if keyBtn then
-                                    keyBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[None]"
-                                    Tween(keyBtn, {TextColor3 = mod.Key and Theme.TextDim or Theme.None}, 0.2)
-                                end
-                            end
+                        if mod.keySelectBtn then
+                            mod.keySelectBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[None]"
+                            Tween(mod.keySelectBtn, {TextColor3 = mod.Key and Theme.TextDim or Theme.None}, 0.2)
                         end
                     end
                 end
@@ -730,13 +761,6 @@ function SwiftBara:CreateCategory(config)
                 Tween(modBtn, {BackgroundTransparency = 1}, 0.1)
             end
         end)
-        
-        -- Nếu có keybind mặc định, gán nó
-        if modKey then
-            SwiftBara.Keybinds[modKey] = Module
-            keySelectBtn.Text = "[" .. modKey.Name .. "]"
-            Tween(keySelectBtn, {TextColor3 = Theme.TextDim}, 0.2)
-        end
         
         if modDefault then
             Module.Enabled = true
@@ -834,7 +858,7 @@ function SwiftBara:CreateCategory(config)
             
             local function update(val)
                 val = math.clamp(val, min, max)
-                val = round(val, 1) -- Using our custom round function
+                val = round(val, 1)
                 Slider.Value = val
                 valueLabel.Text = tostring(val) .. suffix
                 local pct = (val - min) / (max - min)
@@ -1036,14 +1060,15 @@ function SwiftBara:CreateCategory(config)
             -- Cập nhật keybind mới
             Module.Key = key
             
-            if key then
-                -- Nếu có keybind mới
+            if key and not isNoneValue(key) then
+                -- Nếu có keybind mới và không phải là None
                 keySelectBtn.Text = "[" .. key.Name .. "]"
                 Tween(keySelectBtn, {TextColor3 = Theme.TextDim}, 0.2)
                 SwiftBara.Keybinds[key] = Module
                 SwiftBara:Notify("Bound " .. modName .. " to [" .. key.Name .. "]")
             else
                 -- Nếu xóa keybind (None)
+                Module.Key = nil
                 keySelectBtn.Text = "[None]"
                 Tween(keySelectBtn, {TextColor3 = Theme.None}, 0.2)
                 SwiftBara:Notify("Removed keybind from " .. modName)
@@ -1110,16 +1135,9 @@ UserInputService.InputBegan:Connect(function(input, gpe)
             -- Reset tất cả nút keybind
             for _, cat in pairs(SwiftBara.Categories) do
                 for _, mod in pairs(cat.Modules) do
-                    local frame = cat.modulesContainer:FindFirstChild(mod.Name)
-                    if frame then
-                        local btn = frame:FindFirstChild("Button")
-                        if btn then
-                            local keyBtn = btn:FindFirstChild("KeySelectBtn")
-                            if keyBtn then
-                                keyBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[None]"
-                                Tween(keyBtn, {TextColor3 = mod.Key and Theme.TextDim or Theme.None}, 0.2)
-                            end
-                        end
+                    if mod.keySelectBtn then
+                        mod.keySelectBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[None]"
+                        Tween(mod.keySelectBtn, {TextColor3 = mod.Key and Theme.TextDim or Theme.None}, 0.2)
                     end
                 end
             end
@@ -1164,28 +1182,18 @@ task.spawn(function()
         if SwiftBara.SelectingKeybind then
             for _, cat in pairs(SwiftBara.Categories) do
                 for _, mod in pairs(cat.Modules) do
-                    local modulesContainer = cat.modulesContainer
-                    if modulesContainer then
-                        local frame = modulesContainer:FindFirstChild(mod.Name)
-                        if frame then
-                            local btn = frame:FindFirstChild("Button")
-                            if btn then
-                                local keyBtn = btn:FindFirstChild("KeySelectBtn")
-                                if keyBtn then
-                                    if mod == SwiftBara.SelectedModule then
-                                        keyBtn.Text = "[...]"
-                                        Tween(keyBtn, {TextColor3 = Theme.Selecting}, 0.2)
-                                    elseif SwiftBara.KeybindSelectionMode == "ALL" then
-                                        -- Nhấp nháy cho tất cả khi ở chế độ ALL
-                                        if keyBtn.Text == "[...]" then
-                                            keyBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[None]"
-                                            Tween(keyBtn, {TextColor3 = mod.Key and Theme.TextDim or Theme.None}, 0.2)
-                                        else
-                                            keyBtn.Text = "[...]"
-                                            Tween(keyBtn, {TextColor3 = Theme.Selecting}, 0.2)
-                                        end
-                                    end
-                                end
+                    if mod.keySelectBtn then
+                        if mod == SwiftBara.SelectedModule then
+                            mod.keySelectBtn.Text = "[...]"
+                            Tween(mod.keySelectBtn, {TextColor3 = Theme.Selecting}, 0.2)
+                        elseif SwiftBara.KeybindSelectionMode == "ALL" then
+                            -- Nhấp nháy cho tất cả khi ở chế độ ALL
+                            if mod.keySelectBtn.Text == "[...]" then
+                                mod.keySelectBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[None]"
+                                Tween(mod.keySelectBtn, {TextColor3 = mod.Key and Theme.TextDim or Theme.None}, 0.2)
+                            else
+                                mod.keySelectBtn.Text = "[...]"
+                                Tween(mod.keySelectBtn, {TextColor3 = Theme.Selecting}, 0.2)
                             end
                         end
                     end
