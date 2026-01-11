@@ -1,8 +1,8 @@
 --[[
-    ╔═══════════════════════════════════════════════════════════════╗
-    ║                 SwiftBara Client UI                            ║
-    ║              Minecraft Client Style v1.2                       ║
-    ╚═══════════════════════════════════════════════════════════════╝
+    ╔═══════════════════════════════════════════════════════════╗
+    ║                 SwiftBara Client UI                       ║
+    ║              Minecraft Client Style v1.3                  ║
+    ╚═══════════════════════════════════════════════════════════╝
 ]]
 
 -- Cleanup
@@ -11,15 +11,15 @@ for _, g in pairs(game:GetService("CoreGui"):GetChildren()) do
 end
 
 local SwiftBara = {
-    Version = "1.2.0",
+    Version = "1.3.0",
     Categories = {},
     EnabledModules = {},
     Keybinds = {},
     ToggleKey = Enum.KeyCode.RightShift,
     GUIVisible = true,
-    SelectingKeybind = false,  -- Trạng thái đang chọn keybind
-    SelectedModule = nil,      -- Module đang được chọn để gán keybind
-    KeybindSelectionMode = "SINGLE" -- "SINGLE" hoặc "ALL"
+    SelectingKeybind = false,
+    SelectedModule = nil,
+    KeybindSelectionMode = "SINGLE"
 }
 
 -- Services
@@ -48,8 +48,8 @@ local Theme = {
     
     Text = Color3.fromRGB(255, 255, 255),
     TextDim = Color3.fromRGB(130, 130, 145),
-    Selecting = Color3.fromRGB(255, 200, 50), -- Màu khi đang chọn keybind
-    None = Color3.fromRGB(200, 100, 100), -- Màu cho "None"
+    Selecting = Color3.fromRGB(255, 200, 50),
+    None = Color3.fromRGB(200, 100, 100),
 }
 
 -- Utilities
@@ -84,9 +84,9 @@ local function round(num, numDecimalPlaces)
 end
 
 --[[
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
                          FIXED DRAGGABLE
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
 ]]
 
 local function MakeDraggable(frame, handle)
@@ -126,9 +126,9 @@ local function MakeDraggable(frame, handle)
 end
 
 --[[
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
                               MAIN GUI
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
 ]]
 
 local MainGui = Create("ScreenGui", {
@@ -146,9 +146,9 @@ local ArrayGui = Create("ScreenGui", {
 })
 
 --[[
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
                ARRAY LIST WITH CONNECTED GRADIENT BAR
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
 ]]
 
 local ArrayContainer = Create("Frame", {
@@ -160,7 +160,6 @@ local ArrayContainer = Create("Frame", {
     Size = UDim2.new(0, 200, 0, 500)
 })
 
--- Connected gradient bar on the right side
 local GradientBar = Create("Frame", {
     Name = "GradientBar",
     Parent = ArrayContainer,
@@ -181,7 +180,6 @@ local GradientEffect = Create("UIGradient", {
     Rotation = 90
 })
 
--- Animate gradient continuously
 local gradientOffset = 0
 RunService.RenderStepped:Connect(function(dt)
     gradientOffset = (gradientOffset + dt * 0.5) % 1
@@ -196,7 +194,6 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
--- Modules list
 local ModulesList = Create("Frame", {
     Name = "ModulesList",
     Parent = ArrayContainer,
@@ -213,27 +210,22 @@ Create("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder
 })
 
--- Update Array List
 local function UpdateArrayList()
-    -- Clear old entries
     for _, child in pairs(ModulesList:GetChildren()) do
         if child:IsA("Frame") then
             child:Destroy()
         end
     end
     
-    -- Sort by name length (longest first)
     local sorted = {}
     for name, data in pairs(SwiftBara.EnabledModules) do
         table.insert(sorted, {name = name, data = data})
     end
     table.sort(sorted, function(a, b) return #a.name > #b.name end)
     
-    -- Update gradient bar height
     local totalHeight = #sorted * 21
     Tween(GradientBar, {Size = UDim2.new(0, 3, 0, math.max(totalHeight, 0))}, 0.2)
     
-    -- Create entries
     for i, module in ipairs(sorted) do
         local entry = Create("Frame", {
             Name = module.name,
@@ -267,9 +259,9 @@ local function UpdateArrayList()
 end
 
 --[[
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
                            WATERMARK
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
 ]]
 
 local Watermark = Create("Frame", {
@@ -317,7 +309,6 @@ Create("UIPadding", {
 
 MakeDraggable(Watermark)
 
--- FPS & Time
 local fps = 60
 local fpsCount = 0
 local lastFpsUpdate = tick()
@@ -337,7 +328,6 @@ task.spawn(function()
             WatermarkText.Text = "SwiftBara " .. SwiftBara.Version .. " | " .. Player.Name .. " | " .. fps .. " fps | " .. os.date("%H:%M:%S")
         end
         
-        -- Animate watermark gradient
         if WatermarkGradient and WatermarkGradient.Parent then
             WatermarkGradient.Rotation = (WatermarkGradient.Rotation + 2) % 360
         end
@@ -345,25 +335,23 @@ task.spawn(function()
 end)
 
 --[[
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
                          CREATE CATEGORY
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
 ]]
 
 function SwiftBara:CreateCategory(config)
     config = config or {}
     local name = config.Name or "Category"
-    local icon = config.Icon or "⚙"
     local pos = config.Position or UDim2.new(0, 60 + (#self.Categories * 175), 0, 100)
     
     local Category = {
         Name = name,
         Modules = {},
         Expanded = true,
-        modulesContainer = nil -- Thêm container để truy cập từ bên ngoài
+        modulesContainer = nil
     }
     
-    -- Main frame
     local frame = Create("Frame", {
         Name = name,
         Parent = MainGui,
@@ -375,7 +363,6 @@ function SwiftBara:CreateCategory(config)
     })
     Create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = frame})
     
-    -- Gradient stroke
     local stroke = Create("UIStroke", {
         Parent = frame,
         Thickness = 1.5,
@@ -389,7 +376,6 @@ function SwiftBara:CreateCategory(config)
         })
     })
     
-    -- Animate stroke gradient
     task.spawn(function()
         while frame and frame.Parent do
             if strokeGradient and strokeGradient.Parent then
@@ -399,7 +385,6 @@ function SwiftBara:CreateCategory(config)
         end
     end)
     
-    -- Header
     local header = Create("Frame", {
         Name = "Header",
         Parent = frame,
@@ -409,35 +394,20 @@ function SwiftBara:CreateCategory(config)
     })
     Create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = header})
     
-    
-    -- Icon
-    Create("TextLabel", {
-        Name = "Icon",
-        Parent = header,
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 10, 0, 0),
-        Size = UDim2.new(0, 20, 1, 0),
-        Font = Enum.Font.GothamBold,
-        Text = icon,
-        TextColor3 = Theme.Primary,
-        TextSize = 14
-    })
-    
-    -- Title
+    -- Title centered
     Create("TextLabel", {
         Name = "Title",
         Parent = header,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 32, 0, 0),
-        Size = UDim2.new(1, -60, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(1, -28, 1, 0),
         Font = Enum.Font.GothamBold,
         Text = name,
         TextColor3 = Theme.Text,
         TextSize = 13,
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextXAlignment = Enum.TextXAlignment.Center
     })
     
-    -- Arrow
     local arrow = Create("TextLabel", {
         Name = "Arrow",
         Parent = header,
@@ -451,7 +421,6 @@ function SwiftBara:CreateCategory(config)
         TextSize = 10
     })
     
-    -- Header button
     local headerBtn = Create("TextButton", {
         Name = "HeaderBtn",
         Parent = header,
@@ -460,7 +429,6 @@ function SwiftBara:CreateCategory(config)
         Text = ""
     })
     
-    -- Modules container
     local modulesContainer = Create("Frame", {
         Name = "Modules",
         Parent = frame,
@@ -483,10 +451,8 @@ function SwiftBara:CreateCategory(config)
         PaddingRight = UDim.new(0, 4)
     })
     
-    -- Lưu container vào Category
     Category.modulesContainer = modulesContainer
     
-    -- Update size
     local function UpdateSize()
         local layout = modulesContainer:FindFirstChildOfClass("UIListLayout")
         if Category.Expanded then
@@ -501,13 +467,11 @@ function SwiftBara:CreateCategory(config)
     
     modulesContainer:FindFirstChildOfClass("UIListLayout"):GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateSize)
     
-    -- Toggle expand
     headerBtn.MouseButton1Click:Connect(function()
         Category.Expanded = not Category.Expanded
         UpdateSize()
     end)
     
-    -- Hover
     headerBtn.MouseEnter:Connect(function()
         Tween(header, {BackgroundTransparency = 0}, 0.1)
     end)
@@ -515,32 +479,30 @@ function SwiftBara:CreateCategory(config)
         Tween(header, {BackgroundTransparency = 0.2}, 0.1)
     end)
     
-    -- FIXED: Make category draggable
     MakeDraggable(frame, headerBtn)
     
     --[[
-        ═══════════════════════════════════════════════════════════
+        ═══════════════════════════════════════════════════════
                             CREATE MODULE
-        ═══════════════════════════════════════════════════════════
+        ═══════════════════════════════════════════════════════
     ]]
     
     function Category:CreateModule(config)
         config = config or {}
         local modName = config.Name or "Module"
         local modDefault = config.Default or false
-        local modKey = config.Key -- Có thể là nil, Enum.KeyCode, hoặc chuỗi "None"
+        local modKey = config.Key
         local modCallback = config.Callback or function() end
         
         local Module = {
             Name = modName,
             Enabled = false,
-            Key = nil, -- Mặc định là nil (None)
+            Key = nil,
             Settings = {},
             Expanded = false,
-            keySelectBtn = nil -- Thêm reference để truy cập từ bên ngoài
+            keySelectBtn = nil
         }
         
-        -- Module frame
         local modFrame = Create("Frame", {
             Name = modName,
             Parent = modulesContainer,
@@ -551,7 +513,6 @@ function SwiftBara:CreateCategory(config)
         })
         Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = modFrame})
         
-        -- Button
         local modBtn = Create("TextButton", {
             Name = "Button",
             Parent = modFrame,
@@ -563,7 +524,6 @@ function SwiftBara:CreateCategory(config)
         })
         Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = modBtn})
         
-        -- Indicator
         local indicator = Create("Frame", {
             Name = "Indicator",
             Parent = modBtn,
@@ -574,7 +534,6 @@ function SwiftBara:CreateCategory(config)
         })
         Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = indicator})
         
-        -- Name
         local nameLabel = Create("TextLabel", {
             Name = "Name",
             Parent = modBtn,
@@ -588,7 +547,6 @@ function SwiftBara:CreateCategory(config)
             TextXAlignment = Enum.TextXAlignment.Left
         })
         
-        -- Keybind Selector Button
         local keySelectBtn = Create("TextButton", {
             Name = "KeySelectBtn",
             Parent = modBtn,
@@ -604,10 +562,8 @@ function SwiftBara:CreateCategory(config)
             AutoButtonColor = false
         })
         
-        -- Lưu reference vào Module
         Module.keySelectBtn = keySelectBtn
         
-        -- Settings container
         local settingsContainer = Create("Frame", {
             Name = "Settings",
             Parent = modFrame,
@@ -628,7 +584,6 @@ function SwiftBara:CreateCategory(config)
             PaddingRight = UDim.new(0, 8)
         })
         
-        -- Helper function to check if value is "None"
         local function isNoneValue(value)
             if value == nil then return true end
             if type(value) == "string" then
@@ -637,10 +592,8 @@ function SwiftBara:CreateCategory(config)
             return false
         end
         
-        -- Helper function to initialize keybind
         local function initializeKeybind()
             if modKey and not isNoneValue(modKey) then
-                -- Nếu modKey là Enum.KeyCode
                 if typeof(modKey) == "EnumItem" and modKey.EnumType == Enum.KeyCode then
                     Module.Key = modKey
                     keySelectBtn.Text = "[" .. modKey.Name .. "]"
@@ -648,17 +601,14 @@ function SwiftBara:CreateCategory(config)
                     SwiftBara.Keybinds[modKey] = Module
                 end
             else
-                -- Mặc định là None
                 Module.Key = nil
                 keySelectBtn.Text = "[None]"
                 Tween(keySelectBtn, {TextColor3 = Theme.None}, 0.2)
             end
         end
         
-        -- Khởi tạo keybind
         initializeKeybind()
         
-        -- Update state
         local function UpdateState()
             if Module.Enabled then
                 Tween(indicator, {BackgroundTransparency = 0}, 0.15)
@@ -675,7 +625,6 @@ function SwiftBara:CreateCategory(config)
             modCallback(Module.Enabled)
         end
         
-        -- Update module size
         local function UpdateModuleSize()
             if Module.Expanded and #Module.Settings > 0 then
                 settingsContainer.Visible = true
@@ -692,13 +641,11 @@ function SwiftBara:CreateCategory(config)
         
         settingsContainer:FindFirstChildOfClass("UIListLayout"):GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateModuleSize)
         
-        -- Click toggle
         modBtn.MouseButton1Click:Connect(function()
             Module.Enabled = not Module.Enabled
             UpdateState()
         end)
         
-        -- Right click settings
         modBtn.MouseButton2Click:Connect(function()
             if #Module.Settings > 0 then
                 Module.Expanded = not Module.Expanded
@@ -706,16 +653,13 @@ function SwiftBara:CreateCategory(config)
             end
         end)
         
-        -- Khi nhấn vào nút keybind
         keySelectBtn.MouseButton1Click:Connect(function()
             if SwiftBara.SelectingKeybind then
-                -- Đã đang chọn keybind, hủy
                 SwiftBara.SelectingKeybind = false
                 SwiftBara.SelectedModule = nil
                 SwiftBara.KeybindSelectionMode = "SINGLE"
                 SwiftBara:Notify("Cancelled keybind selection")
                 
-                -- Reset màu tất cả nút keybind
                 for _, cat in pairs(SwiftBara.Categories) do
                     for _, mod in pairs(cat.Modules) do
                         if mod.keySelectBtn then
@@ -725,19 +669,16 @@ function SwiftBara:CreateCategory(config)
                     end
                 end
             else
-                -- Bắt đầu chọn keybind cho module này
                 SwiftBara.SelectingKeybind = true
                 SwiftBara.SelectedModule = Module
                 SwiftBara.KeybindSelectionMode = "SINGLE"
                 SwiftBara:Notify("Press any key to bind to " .. modName .. " (ESC to cancel, Delete for None)")
                 
-                -- Highlight nút keybind của module này
                 keySelectBtn.Text = "[...]"
                 Tween(keySelectBtn, {TextColor3 = Theme.Selecting}, 0.2)
             end
         end)
         
-        -- Hover effect cho nút keybind
         keySelectBtn.MouseEnter:Connect(function()
             if not SwiftBara.SelectingKeybind then
                 Tween(keySelectBtn, {TextColor3 = Module.Key and Theme.Text or Theme.None}, 0.1)
@@ -750,7 +691,6 @@ function SwiftBara:CreateCategory(config)
             end
         end)
         
-        -- Hover
         modBtn.MouseEnter:Connect(function()
             if not Module.Enabled then
                 Tween(modBtn, {BackgroundTransparency = 0.5}, 0.1)
@@ -768,9 +708,9 @@ function SwiftBara:CreateCategory(config)
         end
         
         --[[
-            ═══════════════════════════════════════
+            ═══════════════════════════════════════════════
                      MODULE SETTINGS
-            ═══════════════════════════════════════
+            ═══════════════════════════════════════════════
         ]]
         
         function Module:AddSlider(cfg)
@@ -823,7 +763,7 @@ function SwiftBara:CreateCategory(config)
                 Parent = sliderFrame,
                 BackgroundColor3 = Color3.fromRGB(35, 35, 48),
                 Position = UDim2.new(0, 0, 0, 16),
-                Size = UDim2.new(1, 0, 0, 10)
+                Size = UDim2.new(1, 0, 0, 8)
             })
             Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = sliderBg})
             
@@ -848,11 +788,18 @@ function SwiftBara:CreateCategory(config)
                 BackgroundColor3 = Theme.Text,
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new((default - min) / (max - min), 0, 0.5, 0),
-                Size = UDim2.new(0, 14, 0, 14),
+                Size = UDim2.new(0, 10, 0, 10),
                 ZIndex = 2
             })
             Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = handle})
-            Create("UIStroke", {Parent = handle, Color = Theme.Primary, Thickness = 2})
+            local handleStroke = Create("UIStroke", {Parent = handle, Thickness = 1.5})
+            Create("UIGradient", {
+                Parent = handleStroke,
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Theme.Primary),
+                    ColorSequenceKeypoint.new(1, Theme.Secondary)
+                })
+            })
             
             local dragging = false
             
@@ -933,6 +880,14 @@ function SwiftBara:CreateCategory(config)
             })
             Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = toggleBg})
             
+            local toggleGradient = Create("UIGradient", {
+                Parent = toggleBg,
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 55)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 55))
+                })
+            })
+            
             local toggleCircle = Create("Frame", {
                 Name = "Circle",
                 Parent = toggleBg,
@@ -946,10 +901,16 @@ function SwiftBara:CreateCategory(config)
             local function updateToggle(val)
                 Toggle.Value = val
                 if val then
-                    Tween(toggleBg, {BackgroundColor3 = Theme.Primary}, 0.15)
+                    toggleGradient.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Theme.Primary),
+                        ColorSequenceKeypoint.new(1, Theme.Secondary)
+                    })
                     Tween(toggleCircle, {Position = UDim2.new(1, -12, 0.5, 0), BackgroundColor3 = Theme.Text}, 0.15)
                 else
-                    Tween(toggleBg, {BackgroundColor3 = Color3.fromRGB(40, 40, 55)}, 0.15)
+                    toggleGradient.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 55)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 55))
+                    })
                     Tween(toggleCircle, {Position = UDim2.new(0, 2, 0.5, 0), BackgroundColor3 = Theme.TextDim}, 0.15)
                 end
                 callback(val)
@@ -1051,23 +1012,204 @@ function SwiftBara:CreateCategory(config)
             return Mode
         end
         
+        function Module:AddDropdown(cfg)
+            cfg = cfg or {}
+            local dropName = cfg.Name or "Dropdown"
+            local options = cfg.Options or {"Option 1", "Option 2", "Option 3"}
+            local default = cfg.Default or options[1]
+            local callback = cfg.Callback or function() end
+            
+            local Dropdown = {Value = default, Options = options, Opened = false}
+            table.insert(Module.Settings, Dropdown)
+            
+            local dropFrame = Create("Frame", {
+                Name = dropName,
+                Parent = settingsContainer,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 20),
+                ClipsDescendants = true
+            })
+            
+            Create("TextLabel", {
+                Name = "Label",
+                Parent = dropFrame,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0.4, 0, 0, 20),
+                Font = Enum.Font.Gotham,
+                Text = dropName,
+                TextColor3 = Theme.TextDim,
+                TextSize = 10,
+                TextXAlignment = Enum.TextXAlignment.Left
+            })
+            
+            local dropBtn = Create("TextButton", {
+                Name = "Btn",
+                Parent = dropFrame,
+                BackgroundColor3 = Color3.fromRGB(38, 38, 52),
+                AnchorPoint = Vector2.new(1, 0),
+                Position = UDim2.new(1, 0, 0, 0),
+                Size = UDim2.new(0.55, 0, 0, 18),
+                Font = Enum.Font.Gotham,
+                Text = default,
+                TextColor3 = Theme.Text,
+                TextSize = 9,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                AutoButtonColor = false
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = dropBtn})
+            
+            local arrow = Create("TextLabel", {
+                Name = "Arrow",
+                Parent = dropBtn,
+                BackgroundTransparency = 1,
+                AnchorPoint = Vector2.new(1, 0.5),
+                Position = UDim2.new(1, -4, 0.5, 0),
+                Size = UDim2.new(0, 12, 0, 12),
+                Font = Enum.Font.GothamBold,
+                Text = "▼",
+                TextColor3 = Theme.TextDim,
+                TextSize = 8
+            })
+            
+            local optionsFrame = Create("Frame", {
+                Name = "Options",
+                Parent = dropFrame,
+                BackgroundColor3 = Color3.fromRGB(28, 28, 38),
+                AnchorPoint = Vector2.new(1, 0),
+                Position = UDim2.new(1, 0, 0, 20),
+                Size = UDim2.new(0.55, 0, 0, 0),
+                Visible = false
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = optionsFrame})
+            Create("UIStroke", {
+                Parent = optionsFrame,
+                Color = Theme.Primary,
+                Thickness = 1,
+                Transparency = 0.7
+            })
+            
+            local optionsList = Create("UIListLayout", {
+                Parent = optionsFrame,
+                Padding = UDim.new(0, 1)
+            })
+            
+            local function updateDropdown()
+                if Dropdown.Opened then
+                    optionsFrame.Visible = true
+                    local h = #options * 19
+                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 20 + h + 2)}, 0.2)
+                    Tween(arrow, {Rotation = 180}, 0.2)
+                else
+                    Tween(dropFrame, {Size = UDim2.new(1, 0, 0, 20)}, 0.2)
+                    Tween(arrow, {Rotation = 0}, 0.2)
+                    task.delay(0.2, function()
+                        if not Dropdown.Opened then
+                            optionsFrame.Visible = false
+                        end
+                    end)
+                end
+                UpdateModuleSize()
+            end
+            
+            for i, opt in ipairs(options) do
+                local optBtn = Create("TextButton", {
+                    Name = opt,
+                    Parent = optionsFrame,
+                    BackgroundColor3 = Dropdown.Value == opt and Theme.Hover or Color3.fromRGB(28, 28, 38),
+                    Size = UDim2.new(1, 0, 0, 18),
+                    Font = Enum.Font.Gotham,
+                    Text = opt,
+                    TextColor3 = Dropdown.Value == opt and Theme.Primary or Theme.Text,
+                    TextSize = 9,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    AutoButtonColor = false
+                })
+                Create("UICorner", {CornerRadius = UDim.new(0, 3), Parent = optBtn})
+                
+                optBtn.MouseButton1Click:Connect(function()
+                    Dropdown.Value = opt
+                    dropBtn.Text = opt
+                    callback(opt)
+                    
+                    for _, child in pairs(optionsFrame:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            if child.Text == opt then
+                                Tween(child, {BackgroundColor3 = Theme.Hover}, 0.1)
+                                Tween(child, {TextColor3 = Theme.Primary}, 0.1)
+                            else
+                                Tween(child, {BackgroundColor3 = Color3.fromRGB(28, 28, 38)}, 0.1)
+                                Tween(child, {TextColor3 = Theme.Text}, 0.1)
+                            end
+                        end
+                    end
+                    
+                    Dropdown.Opened = false
+                    updateDropdown()
+                end)
+                
+                optBtn.MouseEnter:Connect(function()
+                    if Dropdown.Value ~= opt then
+                        Tween(optBtn, {BackgroundColor3 = Theme.Hover}, 0.1)
+                    end
+                end)
+                
+                optBtn.MouseLeave:Connect(function()
+                    if Dropdown.Value ~= opt then
+                        Tween(optBtn, {BackgroundColor3 = Color3.fromRGB(28, 28, 38)}, 0.1)
+                    end
+                end)
+            end
+            
+            dropBtn.MouseButton1Click:Connect(function()
+                Dropdown.Opened = not Dropdown.Opened
+                updateDropdown()
+            end)
+            
+            dropBtn.MouseEnter:Connect(function()
+                Tween(dropBtn, {BackgroundColor3 = Theme.Hover}, 0.1)
+            end)
+            dropBtn.MouseLeave:Connect(function()
+                Tween(dropBtn, {BackgroundColor3 = Color3.fromRGB(38, 38, 52)}, 0.1)
+            end)
+            
+            function Dropdown:Set(val)
+                if tableFind(options, val) then
+                    Dropdown.Value = val
+                    dropBtn.Text = val
+                    callback(val)
+                    
+                    for _, child in pairs(optionsFrame:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            if child.Text == val then
+                                child.BackgroundColor3 = Theme.Hover
+                                child.TextColor3 = Theme.Primary
+                            else
+                                child.BackgroundColor3 = Color3.fromRGB(28, 28, 38)
+                                child.TextColor3 = Theme.Text
+                            end
+                        end
+                    end
+                end
+            end
+            function Dropdown:Get() return Dropdown.Value end
+            
+            UpdateModuleSize()
+            return Dropdown
+        end
+        
         function Module:SetKey(key)
-            -- Xóa keybind cũ
             if Module.Key then 
                 SwiftBara.Keybinds[Module.Key] = nil 
             end
             
-            -- Cập nhật keybind mới
             Module.Key = key
             
             if key and not isNoneValue(key) then
-                -- Nếu có keybind mới và không phải là None
                 keySelectBtn.Text = "[" .. key.Name .. "]"
                 Tween(keySelectBtn, {TextColor3 = Theme.TextDim}, 0.2)
                 SwiftBara.Keybinds[key] = Module
                 SwiftBara:Notify("Bound " .. modName .. " to [" .. key.Name .. "]")
             else
-                -- Nếu xóa keybind (None)
                 Module.Key = nil
                 keySelectBtn.Text = "[None]"
                 Tween(keySelectBtn, {TextColor3 = Theme.None}, 0.2)
@@ -1097,21 +1239,19 @@ function SwiftBara:CreateCategory(config)
 end
 
 --[[
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
                          KEYBIND HANDLER
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
 ]]
 
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     
-    -- Toggle GUI
     if input.KeyCode == SwiftBara.ToggleKey then
         SwiftBara.GUIVisible = not SwiftBara.GUIVisible
         MainGui.Enabled = SwiftBara.GUIVisible
     end
     
-    -- Hotkey Ctrl+R để bắt đầu chọn keybind cho tất cả module
     if input.KeyCode == Enum.KeyCode.R then
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl) then
             if not SwiftBara.SelectingKeybind then
@@ -1123,16 +1263,13 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         end
     end
     
-    -- Nếu đang ở chế độ chọn keybind
     if SwiftBara.SelectingKeybind and SwiftBara.SelectedModule then
         if input.KeyCode == Enum.KeyCode.Escape then
-            -- Hủy chọn keybind
             SwiftBara.SelectingKeybind = false
             SwiftBara.SelectedModule = nil
             SwiftBara.KeybindSelectionMode = "SINGLE"
             SwiftBara:Notify("Cancelled keybind selection")
             
-            -- Reset tất cả nút keybind
             for _, cat in pairs(SwiftBara.Categories) do
                 for _, mod in pairs(cat.Modules) do
                     if mod.keySelectBtn then
@@ -1142,24 +1279,20 @@ UserInputService.InputBegan:Connect(function(input, gpe)
                 end
             end
         elseif input.KeyCode == Enum.KeyCode.Delete or input.KeyCode == Enum.KeyCode.Backspace then
-            -- Xóa keybind (chuyển về None)
             local module = SwiftBara.SelectedModule
             if module then
                 module:SetKey(nil)
             end
             
-            -- Tắt chế độ chọn keybind
             SwiftBara.SelectingKeybind = false
             SwiftBara.SelectedModule = nil
             SwiftBara.KeybindSelectionMode = "SINGLE"
         else
-            -- Gán keybind mới cho module đã chọn
             local module = SwiftBara.SelectedModule
             if module then
                 module:SetKey(input.KeyCode)
             end
             
-            -- Tắt chế độ chọn keybind
             SwiftBara.SelectingKeybind = false
             SwiftBara.SelectedModule = nil
             SwiftBara.KeybindSelectionMode = "SINGLE"
@@ -1167,7 +1300,6 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         return
     end
     
-    -- Kích hoạt module bằng keybind (chỉ khi không phải là phím Delete/Escape)
     if input.KeyCode ~= Enum.KeyCode.Delete and input.KeyCode ~= Enum.KeyCode.Backspace then
         local mod = SwiftBara.Keybinds[input.KeyCode]
         if mod and mod.Toggle then 
@@ -1176,7 +1308,6 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
--- Hiệu ứng nhấp nháy khi đang chọn keybind
 task.spawn(function()
     while task.wait(0.5) do
         if SwiftBara.SelectingKeybind then
@@ -1187,7 +1318,6 @@ task.spawn(function()
                             mod.keySelectBtn.Text = "[...]"
                             Tween(mod.keySelectBtn, {TextColor3 = Theme.Selecting}, 0.2)
                         elseif SwiftBara.KeybindSelectionMode == "ALL" then
-                            -- Nhấp nháy cho tất cả khi ở chế độ ALL
                             if mod.keySelectBtn.Text == "[...]" then
                                 mod.keySelectBtn.Text = mod.Key and ("[" .. mod.Key.Name .. "]") or "[None]"
                                 Tween(mod.keySelectBtn, {TextColor3 = mod.Key and Theme.TextDim or Theme.None}, 0.2)
@@ -1204,9 +1334,9 @@ task.spawn(function()
 end)
 
 --[[
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
                           NOTIFICATION
-    ═══════════════════════════════════════════════════════════════
+    ═══════════════════════════════════════════════════════════
 ]]
 
 function SwiftBara:Notify(msg, dur)
