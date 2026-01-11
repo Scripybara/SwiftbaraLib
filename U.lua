@@ -983,19 +983,30 @@ end
 
 --[[
     ═══════════════════════════════════════════════════════════════
-                         KEYBIND HANDLER
+                         KEYBIND HANDLER - FIXED
     ═══════════════════════════════════════════════════════════════
 ]]
+
+-- Tạo một biến riêng để lưu trạng thái GUI
+local GUIEnabled = true
 
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     
+    -- Debug thông tin input
+    print("[DEBUG] Key pressed:", input.KeyCode.Name, "ToggleKey:", SwiftBara.ToggleKey.Name)
+    
     if input.KeyCode == SwiftBara.ToggleKey then
-        SwiftBara.GUIVisible = not SwiftBara.GUIVisible
+        GUIEnabled = not GUIEnabled
+        print("[DEBUG] Toggling GUI. New state:", GUIEnabled)
         
         -- Chỉ tắt/bật Main GUI (UI chính)
-        MainGui.Enabled = SwiftBara.GUIVisible
-        -- Array GUI vẫn hiển thị bình thường
+        if MainGui then
+            MainGui.Enabled = GUIEnabled
+            print("[DEBUG] MainGui.Enabled set to:", MainGui.Enabled)
+        else
+            print("[ERROR] MainGui is nil!")
+        end
     end
     
     local mod = SwiftBara.Keybinds[input.KeyCode]
