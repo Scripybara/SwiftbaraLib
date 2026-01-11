@@ -612,7 +612,7 @@ function SwiftBara:CreateCategory(config)
         local function UpdateState()
             if Module.Enabled then
                 Tween(indicator, {BackgroundTransparency = 0}, 0.15)
-                Tween(nameLabel, {TextColor3 = Theme.Enabled}, 0.15)
+                Tween(nameLabel, {TextColor3 = Color3.fromRGB(100, 255, 150)}, 0.15)
                 Tween(modBtn, {BackgroundTransparency = 0.6}, 0.15)
                 SwiftBara.EnabledModules[modName] = Module
             else
