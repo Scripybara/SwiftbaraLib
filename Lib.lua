@@ -63,6 +63,21 @@ local function Tween(obj, props, time)
     return t
 end
 
+-- Helper functions
+local function tableFind(tbl, value)
+    for i, v in ipairs(tbl) do
+        if v == value then
+            return i
+        end
+    end
+    return nil
+end
+
+local function round(num, numDecimalPlaces)
+    local mult = 10^(numDecimalPlaces or 0)
+    return math.floor(num * mult + 0.5) / mult
+end
+
 --[[
     ═══════════════════════════════════════════════════════════════
                          FIXED DRAGGABLE
@@ -760,7 +775,7 @@ function SwiftBara:CreateCategory(config)
             
             local function update(val)
                 val = math.clamp(val, min, max)
-                val = math.floor(val * 10 + 0.5) / 10
+                val = round(val, 1) -- Using our custom round function
                 Slider.Value = val
                 valueLabel.Text = tostring(val) .. suffix
                 local pct = (val - min) / (max - min)
@@ -922,7 +937,7 @@ function SwiftBara:CreateCategory(config)
             })
             Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = modeBtn})
             
-            local idx = table.find(options, default) or 1
+            local idx = tableFind(options, default) or 1
             
             modeBtn.MouseButton1Click:Connect(function()
                 idx = idx % #options + 1
@@ -939,7 +954,7 @@ function SwiftBara:CreateCategory(config)
             end)
             
             function Mode:Set(val)
-                local i = table.find(options, val)
+                local i = tableFind(options, val)
                 if i then
                     idx = i
                     Mode.Value = val
