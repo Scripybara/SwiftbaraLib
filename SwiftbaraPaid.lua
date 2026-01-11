@@ -1012,6 +1012,354 @@ function SwiftBara:CreateCategory(config)
             return Mode
         end
         
+        function Module:AddColorPicker(cfg)
+            cfg = cfg or {}
+            local pickerName = cfg.Name or "Color"
+            local default = cfg.Default or Color3.fromRGB(255, 100, 50)
+            local callback = cfg.Callback or function() end
+            
+            local ColorPicker = {Value = default, Opened = false}
+            table.insert(Module.Settings, ColorPicker)
+            
+            local pickerFrame = Create("Frame", {
+                Name = pickerName,
+                Parent = settingsContainer,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 20),
+                ClipsDescendants = true
+            })
+            
+            Create("TextLabel", {
+                Name = "Label",
+                Parent = pickerFrame,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0.6, 0, 0, 20),
+                Font = Enum.Font.Gotham,
+                Text = pickerName,
+                TextColor3 = Theme.TextDim,
+                TextSize = 10,
+                TextXAlignment = Enum.TextXAlignment.Left
+            })
+            
+            -- Color preview button
+            local colorBtn = Create("TextButton", {
+                Name = "ColorBtn",
+                Parent = pickerFrame,
+                BackgroundColor3 = default,
+                AnchorPoint = Vector2.new(1, 0.5),
+                Position = UDim2.new(1, 0, 0.5, 0),
+                Size = UDim2.new(0, 60, 0, 16),
+                Text = "",
+                AutoButtonColor = false
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = colorBtn})
+            Create("UIStroke", {
+                Parent = colorBtn,
+                Color = Color3.fromRGB(255, 255, 255),
+                Thickness = 1,
+                Transparency = 0.7
+            })
+            
+            -- RGB text
+            local rgbText = Create("TextLabel", {
+                Name = "RGB",
+                Parent = colorBtn,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 1, 0),
+                Font = Enum.Font.Code,
+                Text = string.format("%d, %d, %d", default.R * 255, default.G * 255, default.B * 255),
+                TextColor3 = Color3.new(1, 1, 1),
+                TextSize = 8,
+                TextStrokeTransparency = 0.5
+            })
+            
+            -- Picker panel
+            local pickerPanel = Create("Frame", {
+                Name = "Panel",
+                Parent = pickerFrame,
+                BackgroundColor3 = Color3.fromRGB(22, 22, 30),
+                Position = UDim2.new(0, 0, 0, 22),
+                Size = UDim2.new(1, 0, 0, 0),
+                Visible = false
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = pickerPanel})
+            Create("UIStroke", {
+                Parent = pickerPanel,
+                Color = Theme.Primary,
+                Thickness = 1,
+                Transparency = 0.6
+            })
+            
+            local panelPadding = Create("UIPadding", {
+                Parent = pickerPanel,
+                PaddingTop = UDim.new(0, 8),
+                PaddingBottom = UDim.new(0, 8),
+                PaddingLeft = UDim.new(0, 8),
+                PaddingRight = UDim.new(0, 8)
+            })
+            
+            -- Hue bar (vertical)
+            local hueFrame = Create("Frame", {
+                Name = "HueFrame",
+                Parent = pickerPanel,
+                BackgroundTransparency = 1,
+                AnchorPoint = Vector2.new(1, 0),
+                Position = UDim2.new(1, 0, 0, 0),
+                Size = UDim2.new(0, 12, 1, 0)
+            })
+            
+            local hueBar = Create("Frame", {
+                Name = "HueBar",
+                Parent = hueFrame,
+                BackgroundColor3 = Color3.new(1, 1, 1),
+                Size = UDim2.new(1, 0, 1, 0)
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = hueBar})
+            
+            local hueGradient = Create("UIGradient", {
+                Parent = hueBar,
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+                    ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
+                    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+                    ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
+                    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+                }),
+                Rotation = 90
+            })
+            
+            local hueSelector = Create("Frame", {
+                Name = "Selector",
+                Parent = hueBar,
+                BackgroundColor3 = Color3.new(1, 1, 1),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.new(0.5, 0, 0, 0),
+                Size = UDim2.new(1, 4, 0, 3),
+                BorderSizePixel = 0
+            })
+            Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = hueSelector})
+            Create("UIStroke", {Parent = hueSelector, Color = Color3.new(0, 0, 0), Thickness = 1})
+            
+            -- Saturation/Value picker
+            local svFrame = Create("Frame", {
+                Name = "SVFrame",
+                Parent = pickerPanel,
+                BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+                Position = UDim2.new(0, 0, 0, 0),
+                Size = UDim2.new(1, -18, 1, 0)
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = svFrame})
+            
+            -- White to transparent gradient (Saturation)
+            local satGradient = Create("Frame", {
+                Name = "Saturation",
+                Parent = svFrame,
+                BackgroundColor3 = Color3.new(1, 1, 1),
+                Size = UDim2.new(1, 0, 1, 0)
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = satGradient})
+            Create("UIGradient", {
+                Parent = satGradient,
+                Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(1, 1, 1)),
+                Transparency = NumberSequence.new({
+                    NumberSequenceKeypoint.new(0, 0),
+                    NumberSequenceKeypoint.new(1, 1)
+                })
+            })
+            
+            -- Black gradient (Value)
+            local valGradient = Create("Frame", {
+                Name = "Value",
+                Parent = svFrame,
+                BackgroundColor3 = Color3.new(0, 0, 0),
+                Size = UDim2.new(1, 0, 1, 0)
+            })
+            Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = valGradient})
+            Create("UIGradient", {
+                Parent = valGradient,
+                Color = ColorSequence.new(Color3.new(0, 0, 0), Color3.new(0, 0, 0)),
+                Transparency = NumberSequence.new({
+                    NumberSequenceKeypoint.new(0, 1),
+                    NumberSequenceKeypoint.new(1, 0)
+                }),
+                Rotation = 90
+            })
+            
+            local svSelector = Create("Frame", {
+                Name = "Selector",
+                Parent = svFrame,
+                BackgroundColor3 = Color3.new(1, 1, 1),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.new(1, 0, 0, 0),
+                Size = UDim2.new(0, 8, 0, 8)
+            })
+            Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = svSelector})
+            Create("UIStroke", {Parent = svSelector, Color = Color3.new(0, 0, 0), Thickness = 2})
+            
+            -- HSV to RGB conversion
+            local function hsvToRgb(h, s, v)
+                local r, g, b
+                local i = math.floor(h * 6)
+                local f = h * 6 - i
+                local p = v * (1 - s)
+                local q = v * (1 - f * s)
+                local t = v * (1 - (1 - f) * s)
+                i = i % 6
+                if i == 0 then r, g, b = v, t, p
+                elseif i == 1 then r, g, b = q, v, p
+                elseif i == 2 then r, g, b = p, v, t
+                elseif i == 3 then r, g, b = p, q, v
+                elseif i == 4 then r, g, b = t, p, v
+                elseif i == 5 then r, g, b = v, p, q
+                end
+                return Color3.new(r, g, b)
+            end
+            
+            -- RGB to HSV conversion
+            local function rgbToHsv(color)
+                local r, g, b = color.R, color.G, color.B
+                local max = math.max(r, g, b)
+                local min = math.min(r, g, b)
+                local delta = max - min
+                
+                local h, s, v = 0, 0, max
+                
+                if delta > 0 then
+                    if max == r then
+                        h = ((g - b) / delta) % 6
+                    elseif max == g then
+                        h = (b - r) / delta + 2
+                    else
+                        h = (r - g) / delta + 4
+                    end
+                    h = h / 6
+                    s = delta / max
+                end
+                
+                return h, s, v
+            end
+            
+            local currentH, currentS, currentV = rgbToHsv(default)
+            
+            local function updateColor()
+                local color = hsvToRgb(currentH, currentS, currentV)
+                ColorPicker.Value = color
+                colorBtn.BackgroundColor3 = color
+                rgbText.Text = string.format("%d, %d, %d", 
+                    math.floor(color.R * 255), 
+                    math.floor(color.G * 255), 
+                    math.floor(color.B * 255))
+                
+                -- Update hue bar base color
+                svFrame.BackgroundColor3 = hsvToRgb(currentH, 1, 1)
+                
+                callback(color)
+            end
+            
+            -- Hue bar dragging
+            local hueDragging = false
+            hueBar.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    hueDragging = true
+                    local pos = math.clamp((input.Position.Y - hueBar.AbsolutePosition.Y) / hueBar.AbsoluteSize.Y, 0, 1)
+                    currentH = pos
+                    hueSelector.Position = UDim2.new(0.5, 0, pos, 0)
+                    updateColor()
+                end
+            end)
+            
+            hueBar.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    hueDragging = false
+                end
+            end)
+            
+            UserInputService.InputChanged:Connect(function(input)
+                if hueDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local pos = math.clamp((input.Position.Y - hueBar.AbsolutePosition.Y) / hueBar.AbsoluteSize.Y, 0, 1)
+                    currentH = pos
+                    hueSelector.Position = UDim2.new(0.5, 0, pos, 0)
+                    updateColor()
+                end
+            end)
+            
+            -- SV picker dragging
+            local svDragging = false
+            svFrame.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    svDragging = true
+                    local posX = math.clamp((input.Position.X - svFrame.AbsolutePosition.X) / svFrame.AbsoluteSize.X, 0, 1)
+                    local posY = math.clamp((input.Position.Y - svFrame.AbsolutePosition.Y) / svFrame.AbsoluteSize.Y, 0, 1)
+                    currentS = posX
+                    currentV = 1 - posY
+                    svSelector.Position = UDim2.new(posX, 0, posY, 0)
+                    updateColor()
+                end
+            end)
+            
+            svFrame.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    svDragging = false
+                end
+            end)
+            
+            UserInputService.InputChanged:Connect(function(input)
+                if svDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local posX = math.clamp((input.Position.X - svFrame.AbsolutePosition.X) / svFrame.AbsoluteSize.X, 0, 1)
+                    local posY = math.clamp((input.Position.Y - svFrame.AbsolutePosition.Y) / svFrame.AbsoluteSize.Y, 0, 1)
+                    currentS = posX
+                    currentV = 1 - posY
+                    svSelector.Position = UDim2.new(posX, 0, posY, 0)
+                    updateColor()
+                end
+            end)
+            
+            -- Toggle picker
+            colorBtn.MouseButton1Click:Connect(function()
+                ColorPicker.Opened = not ColorPicker.Opened
+                if ColorPicker.Opened then
+                    pickerPanel.Visible = true
+                    Tween(pickerFrame, {Size = UDim2.new(1, 0, 0, 110)}, 0.2)
+                else
+                    Tween(pickerFrame, {Size = UDim2.new(1, 0, 0, 20)}, 0.2)
+                    task.delay(0.2, function()
+                        if not ColorPicker.Opened then
+                            pickerPanel.Visible = false
+                        end
+                    end)
+                end
+                UpdateModuleSize()
+            end)
+            
+            colorBtn.MouseEnter:Connect(function()
+                Tween(colorBtn.UIStroke, {Transparency = 0.3}, 0.1)
+            end)
+            
+            colorBtn.MouseLeave:Connect(function()
+                Tween(colorBtn.UIStroke, {Transparency = 0.7}, 0.1)
+            end)
+            
+            -- Initialize selectors
+            hueSelector.Position = UDim2.new(0.5, 0, currentH, 0)
+            svSelector.Position = UDim2.new(currentS, 0, 1 - currentV, 0)
+            updateColor()
+            
+            function ColorPicker:Set(color)
+                local h, s, v = rgbToHsv(color)
+                currentH, currentS, currentV = h, s, v
+                hueSelector.Position = UDim2.new(0.5, 0, h, 0)
+                svSelector.Position = UDim2.new(s, 0, 1 - v, 0)
+                updateColor()
+            end
+            
+            function ColorPicker:Get() return ColorPicker.Value end
+            
+            UpdateModuleSize()
+            return ColorPicker
+        end
+        
         function Module:AddDropdown(cfg)
             cfg = cfg or {}
             local dropName = cfg.Name or "Dropdown"
